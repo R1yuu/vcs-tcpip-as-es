@@ -13,25 +13,59 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
-#define PORT "3490" // the port users will be connecting to
 #define BACKLOG 10 // how many pending connections queue will hold
-void sigchld_handler(int s)
-{
+
+void sigchld_handler(int s) {
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
     while(waitpid(-1, NULL, WNOHANG) > 0);
     errno = saved_errno;
 }
+
 // get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
+void *get_in_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-int main(void)
-{
+
+void print_help(char command[], int exitCode) {
+    printf("usage: %s option\n", command);
+    printf("options:\n");
+    printf("\t-p, --port <port>\n");
+    printf("\t-h, --help\n");
+    exit(exitCode);
+}
+
+char* parse_command_line(int argc, char* argv[]) {
+    int port_idx = 0;
+    for (int i=1; i < argc; i++) {
+        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+            print_help(argv[0], 0);
+        } else if (!strcmp(argv[i], "-p") || !strcmp(argv[i], "--port")) {
+            i++;
+            if (i < argc) {
+                port_idx = i;
+                int port; 
+                char check_str[12];
+                sscanf(argv[port_idx], "%d", &port);
+                sprintf(check_str, "%d", port);
+                if (!strcmp(argv[port_idx], check_str)) {
+                    continue;
+                }
+            }
+        }
+        print_help(argv[0], 1);
+    }
+    if (!port_idx) {
+        print_help(argv[0], 1);
+    }
+    return argv[port_idx];
+}
+
+int main(int argc, char* argv[]) {
+    char* PORT = parse_command_line(argc, argv);
     int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information

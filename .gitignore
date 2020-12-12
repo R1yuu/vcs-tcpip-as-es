@@ -52,3 +52,8 @@ Mkfile.old
 dkms.conf
 
 cmake-build-debug
+CMakeFiles
+cmake_install.cmake
+vcs_tcpip_as_es
+Makefile
+CMakeCache.txt
