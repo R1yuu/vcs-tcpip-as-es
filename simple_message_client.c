@@ -2,7 +2,8 @@
  * @file simple_message_client.c
  * server process of tcp/ip
  *
- * @author Emir Sinanovic<ic17b032@technikum-wien.at>
+ * @author Andre Schneider <ic20b106@technikum-wien.at>
+ * @author Emir Sinanovic <ic17b032@technikum-wien.at>
  * @date 2020/12/12
  *
  * @version 1 
@@ -23,8 +24,14 @@
 #include <unistd.h>
 #include <simple_message_client_commandline_handling.h>
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once
-// get sockaddr, IPv4 or IPv6:
+/**
+ * \brief gets ipv4/ipv6 address from a socket address structure
+ *
+ * \param sa socketaddress to get ip from
+ * 
+ * \return A Void pointer to the ip address
+ * \retval void* to the ip address
+ */
 void *get_in_addr(struct sockaddr *sa){
 	if (sa->sa_family == AF_INET) {
 		return &(((struct sockaddr_in*)sa)->sin_addr);
@@ -32,6 +39,13 @@ void *get_in_addr(struct sockaddr *sa){
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+/**
+ * \brief print usage message and exists with given exit code
+ *
+ * \param stream Output stream to print usage on
+ * \param cmnd the execution command
+ * \param exitcode code with which the program exists after printing the usage
+ */
 void usage(FILE* stream, const char* cmnd, int exitcode) {
 	fprintf(stream, "usage: %s\n", cmnd);
 	fprintf(stream, "options:\n");
@@ -45,6 +59,18 @@ void usage(FILE* stream, const char* cmnd, int exitcode) {
 	exit(exitcode);
 }
 
+/**
+ *
+ * \brief The main algorithm that connects to the server and sends the data
+ *
+ * This is the main entry point for any C program.
+ *
+ * \param argc the number of arguments
+ * \param argv the arguments itselves (including the program name in argv[0])
+ *
+ * \return returns errorcode
+ * \retval 0 for success else error
+ */
 int main(int argc, char* argv[]) { 
 
 	const char* server = NULL;
@@ -66,9 +92,11 @@ int main(int argc, char* argv[]) {
 	memset(&hints, 0, sizeof hints);    
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version    
 	hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
+	
+	if (verbose != 0) {printf("")}
 	if ((rv = getaddrinfo(server, port, &hints, &servinfo)) != 0) {
-	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-	return 1;
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
 	}
 
 	// loop through all the results and connect to the first we can

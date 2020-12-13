@@ -3,6 +3,7 @@
  * server process of tcp/ip
  *
  * @author Andre Schneider <ic20b106@technikum-wien.at>
+ * @author Emir Sinanovic <ic17b032@technikum-wien.at>
  * @date 2020/12/12
  *
  * @version 1 
@@ -61,15 +62,16 @@ void* get_in_addr(struct sockaddr *sa) {
 /**
  * \brief print usage message and exists with given exit code
  *
- * \param command the execution command
- * \param exit_code code with which the program exists after printing the usage
+ * \param stream Output stream to print usage on
+ * \param cmnd the execution command
+ * \param exitcode code with which the program exists after printing the usage
  */
-void usage(char command[], int exit_code) {
-    printf("usage: %s option\n", command);
-    printf("options:\n");
-    printf("\t-p, --port <port>\n");
-    printf("\t-h, --help\n");
-    exit(exit_code);
+void usage(FILE* stream, char cmnd[], int exitcode) {
+    fprintf(stream, "usage: %s option\n", cmnd);
+    fprintf(stream, "options:\n");
+    fprintf(stream, "\t-p, --port <port>\n");
+    fprintf(stream, "\t-h, --help\n");
+    exit(exitcode);
 }
 
 /**
@@ -94,16 +96,16 @@ char* parse_command_line(int argc, char* argv[]) {
     while((ch = getopt_long(argc, argv, "hp:", long_options, NULL)) != -1) {  
         switch(ch) {  
           case 'h':
-            usage(argv[0], 0);
+            usage(stdout, argv[0], 0);
             break;
           case 'p':  
             port = optarg;
             break;
           case ':': 
-            usage(argv[0], 1);
+            usage(stderr, argv[0], 1);
             break;
           case '?':
-            usage(argv[0], 1);
+            usage(stderr, argv[0], 1);
             break;
           default:
             assert(0);
@@ -112,7 +114,7 @@ char* parse_command_line(int argc, char* argv[]) {
     
     for(; optind < argc; optind++){
         printf("unkown argument '%s'\n", argv[optind]);     
-        usage(argv[0], 1);
+        usage(stderr, argv[0], 1);
     } 
 
     return port;
