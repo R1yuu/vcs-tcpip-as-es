@@ -1,6 +1,23 @@
-//
-// Created by andre on 11.12.2020.
-//
+/**
+ * @file hello.c
+ * Betriebssysteme Hello World File.
+ * Beispiel 0
+ *
+ * @author Andre Schneider <ic20b106@technikum-wien.at>
+ * @date 2020/12/12
+ *
+ * @version 470 
+ *
+ * @todo Test it more seriously and more complete.
+ * @todo Review it for missing error checks.
+ * @todo Review it and check the source against the rules at
+ *       https://cis.technikum-wien.at/documents/bic/2/bes/semesterplan/lu/c-rules.html
+ *
+ */
+
+/*
+ * -------------------------------------------------------------- includes --
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,6 +30,9 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+/*
+ * --------------------------------------------------------------- defines --
+ */
 #define BACKLOG 10 // how many pending connections queue will hold
 
 void sigchld_handler(int s) {
@@ -38,6 +58,16 @@ void print_help(char command[], int exitCode) {
     exit(exitCode);
 }
 
+/**
+ *
+ * \brief parses given command line arguments and acts upon them
+ *
+ * \param argc the number of arguments
+ * \param argv the arguments itselves (including the program name in argv[0])
+ *
+ * \return A Pointer to the Null-Terminated Port entry of argv
+ * \retval char* to port entry of argv
+ */
 char* parse_command_line(int argc, char* argv[]) {
     int port_idx = 0;
     for (int i=1; i < argc; i++) {
@@ -64,6 +94,18 @@ char* parse_command_line(int argc, char* argv[]) {
     return argv[port_idx];
 }
 
+/**
+ *
+ * \brief The main algorithm that accept and passes on clients to the server logic
+ *
+ * This is the main entry point for any C program.
+ *
+ * \param argc the number of arguments
+ * \param argv the arguments itselves (including the program name in argv[0])
+ *
+ * \return always "success"
+ * \retval 0 always
+ */
 int main(int argc, char* argv[]) {
     char* PORT = parse_command_line(argc, argv);
     int sockfd, new_fd; // listen on sock_fd, new connection on new_fd
@@ -140,3 +182,6 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
+/*
+ * =================================================================== eof ==
+ */
