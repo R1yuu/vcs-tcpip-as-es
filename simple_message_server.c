@@ -1,18 +1,11 @@
 /**
- * @file hello.c
- * Betriebssysteme Hello World File.
- * Beispiel 0
+ * @file simple_message_server.c
+ * server process of tcp/ip
  *
  * @author Andre Schneider <ic20b106@technikum-wien.at>
  * @date 2020/12/12
  *
- * @version 470 
- *
- * @todo Test it more seriously and more complete.
- * @todo Review it for missing error checks.
- * @todo Review it and check the source against the rules at
- *       https://cis.technikum-wien.at/documents/bic/2/bes/semesterplan/lu/c-rules.html
- *
+ * @version 1 
  */
 
 /*
@@ -30,11 +23,17 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <getopt.h>
 /*
  * --------------------------------------------------------------- defines --
  */
 #define BACKLOG 10 // how many pending connections queue will hold
 
+/**
+ * \brief handels child processes
+ *
+ * \param s is ignored
+ */
 void sigchld_handler(int s) {
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
@@ -42,56 +41,79 @@ void sigchld_handler(int s) {
     errno = saved_errno;
 }
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa) {
+/**
+ * \brief gets ipv4/ipv6 address from a socket address structure
+ *
+ * \param sa socketaddress to get ip from
+ * 
+ * \return A Void pointer to the ip address
+ * \retval void* to the ip address
+ */
+void* get_in_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void print_help(char command[], int exitCode) {
+/**
+ * \brief print usage message and exists with given exit code
+ *
+ * \param command the execution command
+ * \param exit_code code with which the program exists after printing the usage
+ */
+void usage(char command[], int exit_code) {
     printf("usage: %s option\n", command);
     printf("options:\n");
     printf("\t-p, --port <port>\n");
     printf("\t-h, --help\n");
-    exit(exitCode);
+    exit(exit_code);
 }
 
 /**
- *
  * \brief parses given command line arguments and acts upon them
  *
  * \param argc the number of arguments
  * \param argv the arguments itselves (including the program name in argv[0])
  *
- * \return A Pointer to the Null-Terminated Port entry of argv
- * \retval char* to port entry of argv
+ * \return A char Pointer to the port string
+ * \retval char* to the port string
  */
 char* parse_command_line(int argc, char* argv[]) {
-    int port_idx = 0;
-    for (int i=1; i < argc; i++) {
-        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
-            print_help(argv[0], 0);
-        } else if (!strcmp(argv[i], "-p") || !strcmp(argv[i], "--port")) {
-            i++;
-            if (i < argc) {
-                port_idx = i;
-                int port; 
-                char check_str[12];
-                sscanf(argv[port_idx], "%d", &port);
-                sprintf(check_str, "%d", port);
-                if (!strcmp(argv[port_idx], check_str)) {
-                    continue;
-                }
-            }
-        }
-        print_help(argv[0], 1);
-    }
-    if (!port_idx) {
-        print_help(argv[0], 1);
-    }
-    return argv[port_idx];
+    char* port;
+
+    static struct option long_options[] = {
+        {"help", no_argument, NULL, 'h'},
+        {"port", required_argument, NULL, 'p'},
+        {NULL, 0, NULL, 0}
+    };
+
+    int ch;
+    while((ch = getopt_long(argc, argv, "hp:", long_options, NULL)) != -1) {  
+        switch(ch) {  
+          case 'h':
+            usage(argv[0], 0);
+            break;
+          case 'p':  
+            port = optarg;
+            break;
+          case ':': 
+            usage(argv[0], 1);
+            break;
+          case '?':
+            usage(argv[0], 1);
+            break;
+          default:
+            usage(argv[0], 1);
+        }  
+    }  
+    
+    for(; optind < argc; optind++){
+        printf("unkown argument '%s'\n", argv[optind]);     
+        usage(argv[0], 1);
+    } 
+
+    return port;
 }
 
 /**
