@@ -51,4 +51,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-bin/*
+simple_message_client
+simple_message_server

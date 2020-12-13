@@ -36,6 +36,7 @@
  * \param s is ignored
  */
 void sigchld_handler(int s) {
+	s = s;
     // waitpid() might overwrite errno, so we save and restore it:
     int saved_errno = errno;
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -81,7 +82,7 @@ void usage(char command[], int exit_code) {
  * \retval char* to the port string
  */
 char* parse_command_line(int argc, char* argv[]) {
-    char* port;
+    char* port = NULL;
 
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
@@ -194,24 +195,23 @@ int main(int argc, char* argv[]) {
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
+
         int p = fork();
         if (p == -1) {
             perror("Forking failed!\n");
             close(new_fd);
         } else if (p == 0) { // this is the child process
+			close(sockfd);
             char* logic_args[] = {"./simple_message_server_logic", NULL};
 
             dup2(new_fd, STDIN_FILENO);
-            dup2(new_fd, STDOUT_FILENO);
-            close(new_fd);
+			dup2(new_fd, STDOUT_FILENO);
+
+			close(new_fd);
             
             if (execl(logic_args[0], "simple_message_server_logic", (char*)NULL) == -1) {
                 perror("Error executing server logic\n");
             }
-
-            close(new_fd);
-
-            exit(0);
         } else {
             close(new_fd);
         }
