@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
 	int sockfd;
 	int numbytes;
-	//char buf[MAXDATASIZE];
+	
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version    
 	hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
 	
-	if (verbose != 0) {printf("")}
+	if (verbose != 0) {printf("Getting AddrInfo");}
 	if ((rv = getaddrinfo(server, port, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;

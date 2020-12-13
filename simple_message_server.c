@@ -213,6 +213,7 @@ int main(int argc, char* argv[]) {
             
             if (execl(logic_args[0], "simple_message_server_logic", (char*)NULL) == -1) {
                 perror("Error executing server logic\n");
+				close(new_fd);
             }
         } else {
             close(new_fd);
