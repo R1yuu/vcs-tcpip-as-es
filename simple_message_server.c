@@ -24,13 +24,14 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <getopt.h>
+#include <assert.h>
 /*
  * --------------------------------------------------------------- defines --
  */
 #define BACKLOG 10 // how many pending connections queue will hold
 
 /**
- * \brief handels child processes
+ * \brief handels dead child processes
  *
  * \param s is ignored
  */
@@ -104,7 +105,7 @@ char* parse_command_line(int argc, char* argv[]) {
             usage(argv[0], 1);
             break;
           default:
-            usage(argv[0], 1);
+            assert(0);
         }  
     }  
     
@@ -193,14 +194,27 @@ int main(int argc, char* argv[]) {
                   get_in_addr((struct sockaddr *)&their_addr),
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
-        if (!fork()) { // this is the child process
-            close(sockfd); // child doesn't need the listener
-            if (send(new_fd, "Hello, world!", 13, 0) == -1)
-                perror("send");
+        int p = fork();
+        if (p == -1) {
+            perror("Forking failed!\n");
             close(new_fd);
+        } else if (p == 0) { // this is the child process
+            char* logic_args[] = {"./simple_message_server_logic", NULL};
+
+            dup2(new_fd, STDIN_FILENO);
+            dup2(new_fd, STDOUT_FILENO);
+            close(new_fd);
+            
+            if (execl(logic_args[0], "simple_message_server_logic", (char*)NULL) == -1) {
+                perror("Error executing server logic\n");
+            }
+
+            close(new_fd);
+
             exit(0);
+        } else {
+            close(new_fd);
         }
-        close(new_fd); // parent doesn't need this
     }
     return 0;
 }
